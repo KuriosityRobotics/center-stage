@@ -1,0 +1,36 @@
+plugins {
+    id 'java'
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_11
+	targetCompatibility = JavaVersion.VERSION_11
+}
+
+
+repositories {
+    mavenCentral()
+
+	flatDir {
+//		dirs '../libs/armeabi-v7a'
+		 dirs '../libs/arm64-v8a', '../libs/armeabi-v7a'
+	}
+}
+
+dependencies {
+	implementation project(':api')
+
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+test {
+	useJUnitPlatform()
+	jvmArgs '-Djava.library.path=../libs/arm64-v8a:../libs/armeabi-v7a:' + file('.') + '/build/osx'
+}
+
+tasks.withType(JavaExec).configureEach {
+	if (name.endsWith("main()")) {
+		notCompatibleWithConfigurationCache("JavaExec created by IntelliJ")
+	}
+}
