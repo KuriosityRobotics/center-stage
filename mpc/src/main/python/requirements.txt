@@ -1,0 +1,11 @@
+scipy
+numpy
+numba
+aerosandbox == 3.5.11
+casadi == 3.5.5
+requests
+matplotlib
+pandas
+ray[tune]
+optuna
+svgpathtools

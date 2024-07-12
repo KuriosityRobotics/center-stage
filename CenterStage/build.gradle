@@ -1,0 +1,36 @@
+plugins {
+	id('com.android.library')
+}
+apply from: '../build.dependencies.gradle'
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_11
+	targetCompatibility = JavaVersion.VERSION_11
+}
+
+dependencies {
+	implementation project(':api')
+	implementation project(':mpc')
+
+    // junit 5
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+	testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+}
+
+android {
+	compileSdkVersion 30
+	defaultConfig{
+		minSdkVersion 25
+	}
+	namespace "com.kuriosityrobotics.centerstage"
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_11
+		targetCompatibility JavaVersion.VERSION_11
+	}
+}
+
+task wrapper(type: Wrapper){
+gradleVersion = '7.4.2'
+}
+
+task prepareKotlinBuildScriptModel {}

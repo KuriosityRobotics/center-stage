@@ -1,0 +1,32 @@
+CC := /usr/local/opt/llvm/bin/clang
+
+CFLAGS := -O3 -g -Wall -Werror -fPIC --target=x86_64-apple-darwin -std=c11
+LDFLAGS := -dynamiclib -O3
+INCLUDE := -I${JAVA_HOME}/include -I${JAVA_HOME}/include/darwin
+
+BUILD_DIR := build/osx
+INSTALL_DIR := .
+JNI_DYLIB := libdrivempc.dylib
+
+OBJ := $(BUILD_DIR)/jni_load_mpc.o $(BUILD_DIR)/mecanum_mpc_model.o $(BUILD_DIR)/mecanum_mpc_interface.o $(BUILD_DIR)/solver_types_glue.o src/main/c/libmecanum_mpc_osx.a
+
+.PHONY: all clean install
+
+all: $(BUILD_DIR)/$(JNI_DYLIB)
+
+install: $(INSTALL_DIR)/$(JNI_DYLIB)
+
+$(INSTALL_DIR)/%: $(BUILD_DIR)/%
+	cp $^ $@
+
+$(BUILD_DIR)/$(JNI_DYLIB): $(OBJ) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+
+$(BUILD_DIR)/%.o: src/main/c/%.c | $(BUILD_DIR)
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@  $^
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+clean:
+	rm -f $(BUILD_DIR)/*.o $(BUILD_DIR)/$(JNI_DYLIB)

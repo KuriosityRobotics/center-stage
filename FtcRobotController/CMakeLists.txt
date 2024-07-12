@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.5+)
+project(dummy)
+set(CMAKE_CXX_STANDARD 14)
+set(ANDROID_STL c++_shared)
+include(ndk-stl-config.cmake)

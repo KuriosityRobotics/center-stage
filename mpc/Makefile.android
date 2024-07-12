@@ -1,0 +1,32 @@
+CC := /Users/maxcai/Library/Android/sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android24-clang
+
+CFLAGS := -O3 -g -Wall -Werror -fPIC -std=c11
+LDFLAGS := -shared -lm -dynamic
+INCLUDE := -I/Users/maxcai/Library/Android/sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/aarch64-linux-android/
+
+BUILD_DIR := build/android
+INSTALL_DIR := ../libs/arm64-v8a
+JNI_SHARED_OBJECT := libdrivempc.so
+
+.PHONY : all clean install
+
+OBJ := $(BUILD_DIR)/jni_load_mpc.o $(BUILD_DIR)/mecanum_mpc_model.o $(BUILD_DIR)/mecanum_mpc_interface.o $(BUILD_DIR)/solver_types_glue.o $(BUILD_DIR)/isoc99_fscanf.o src/main/c/libmecanum_mpc_android.a
+
+all: $(BUILD_DIR)/$(JNI_DYLIB)
+
+install: $(INSTALL_DIR)/$(JNI_SHARED_OBJECT)
+
+$(INSTALL_DIR)/%: $(BUILD_DIR)/%
+	cp $^ $@
+
+$(BUILD_DIR)/$(JNI_SHARED_OBJECT): $(OBJ) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+
+$(BUILD_DIR)/%.o : src/main/c/%.c | $(BUILD_DIR)
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@  $^
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+clean :
+	rm -f $(BUILD_DIR)/*.o $(BUILD_DIR)/$(JNI_SHARED_OBJECT)
