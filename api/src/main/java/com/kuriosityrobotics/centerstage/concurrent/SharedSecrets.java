@@ -1,11 +1,13 @@
 package com.kuriosityrobotics.centerstage.concurrent;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SharedSecrets {
+class SharedSecrets {
 	private static final JavaLangAccess JLA = new JavaLangAccess() {
-		private final Map<Thread, ThreadContainer> CONTAINERS = new ConcurrentHashMap<>();
+		private final Map<Thread, ThreadContainer> CONTAINERS = Collections.synchronizedMap(new WeakHashMap<>());
 		private final ThreadLocal<StackableScope> HEAD_STACKABLE_SCOPE = new ThreadLocal<>();
 
 		public ThreadContainer threadContainer(Thread thread) {

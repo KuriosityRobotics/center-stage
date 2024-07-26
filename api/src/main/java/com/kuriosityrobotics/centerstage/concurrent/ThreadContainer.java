@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 /**
  * A container of threads.
  */
-public abstract class ThreadContainer extends StackableScope {
+abstract class ThreadContainer extends StackableScope {
 
 	/**
 	 * Creates a ThreadContainer.

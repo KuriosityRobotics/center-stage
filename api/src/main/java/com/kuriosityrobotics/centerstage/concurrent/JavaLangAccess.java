@@ -1,6 +1,6 @@
 package com.kuriosityrobotics.centerstage.concurrent;
 
-public interface JavaLangAccess {
+interface JavaLangAccess {
 
 	/**
 	 * Returns the ThreadContainer for a thread, may be null.
