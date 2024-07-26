@@ -33,6 +33,7 @@ import com.kuriosityrobotics.centerstage.util.Duration;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -46,7 +47,7 @@ import java.util.stream.Stream;
  * in a flock remain in the flock until they terminate.
  *
  * <p> ThreadFlock defines the {@link #open(String) open} method to open a new flock,
- * the {@link #start(Thread) start} method to start a thread in the flock, and the
+ * the {@link #start(ThreadFactory threadFactory, Runnable target) start} method to start a thread in the flock, and the
  * {@link #close() close} method to close the flock. The {@code close} waits for all
  * threads in the flock to finish. The {@link #awaitAll() awaitAll} method may be used
  * to wait for all threads to finish without closing the flock. The {@link #wakeup()}
@@ -79,7 +80,7 @@ import java.util.stream.Stream;
  * <p> Unless otherwise specified, passing a {@code null} argument to a method
  * in this class will cause a {@link NullPointerException} to be thrown.
  */
-public class ThreadFlock implements AutoCloseable {
+class ThreadFlock implements AutoCloseable {
 	private static final JavaLangAccess JLA = SharedSecrets.getJavaLangAccess();
 
 	private final Set<Thread> threads = ConcurrentHashMap.newKeySet();
@@ -222,17 +223,6 @@ public class ThreadFlock implements AutoCloseable {
 		return container.owner();
 	}
 
-	private static void wrapThreadRunnable(Thread thread, Function<Runnable, Runnable> wrapper) {
-		try {
-			var targetField = Thread.class.getDeclaredField("target");
-			targetField.setAccessible(true);
-			var target = (Runnable) targetField.get(thread);
-			targetField.set(thread, wrapper.apply(target));
-		}catch (NoSuchFieldException | IllegalAccessException e) {
-			// "sneaky throw"
-		}
-	}
-
 	/**
 	 * Starts the given unstarted thread in this flock.
 	 *
@@ -242,7 +232,8 @@ public class ThreadFlock implements AutoCloseable {
 	 * <p> This method may only be invoked by the flock owner or threads {@linkplain
 	 * #containsThread(Thread) contained} in the flock.
 	 *
-	 * @param thread the unstarted thread
+	 * @param threadFactory the thread factory
+	 * @param target the task to be run on the thread
 	 * @return the thread, started
 	 * @throws IllegalStateException       if this flock is shutdown or closed
 	 * @throws IllegalThreadStateException if the given thread was already started
@@ -251,16 +242,16 @@ public class ThreadFlock implements AutoCloseable {
 	 * @throws StructureViolationException if the current
 	 *                                     scoped value bindings are not the same as when the flock was created
 	 */
-	public Thread start(Thread thread) {
+	public Thread start(ThreadFactory threadFactory, Runnable target) {
 		ensureOwnerOrContainsThread();
 		// hook thread
 		var startLatch = new CountDownLatch(1);
 		var initException = new AtomicReference<Throwable>();
 
-		Function<Runnable, Runnable> targetWrapper = target -> () -> {
+		Runnable wrappedTarget = () -> {
 			boolean started = false;
 			try {
-				onStart(thread);
+				onStart(Thread.currentThread());
 
 				started = true;
 				startLatch.countDown();
@@ -273,12 +264,13 @@ public class ThreadFlock implements AutoCloseable {
 					throw e;
 			} finally {
 				if (started)
-					onExit(thread);
+					onExit(Thread.currentThread());
 
 				startLatch.countDown();
 			}
 		};
-		wrapThreadRunnable(thread, targetWrapper);
+
+		Thread thread = threadFactory.newThread(wrappedTarget);
 		JLA.start(thread, container);
 		try {
 			startLatch.await();

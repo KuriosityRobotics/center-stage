@@ -513,15 +513,12 @@ public abstract class StructuredTaskScope<T> implements AutoCloseable {
 
 		var subtask = new SubtaskImpl<U>(this, task);
 		if (s < SHUTDOWN) {
-			// create thread to run task
-			Thread thread = factory.newThread(subtask);
-			if (thread == null) {
-				throw new RejectedExecutionException("Rejected by thread factory");
-			}
-
 			// attempt to start the thread
 			try {
-				flock.start(thread);
+				Thread thread = flock.start(factory, subtask);
+				if (thread == null) {
+					throw new RejectedExecutionException("Rejected by thread factory");
+				}
 			} catch (IllegalStateException e) {
 				// shutdown by another thread, or underlying flock is shutdown due
 				// to unstructured use

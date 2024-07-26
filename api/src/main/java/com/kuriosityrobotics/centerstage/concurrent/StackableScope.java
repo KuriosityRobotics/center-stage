@@ -31,7 +31,7 @@ package com.kuriosityrobotics.centerstage.concurrent;
  * popForcefully methods are used to pop the StackableScope from the current thread's
  * scope stack.
  */
-public class StackableScope {
+class StackableScope {
 	private static final JavaLangAccess JLA = SharedSecrets.getJavaLangAccess();
 
 	private final Thread owner;

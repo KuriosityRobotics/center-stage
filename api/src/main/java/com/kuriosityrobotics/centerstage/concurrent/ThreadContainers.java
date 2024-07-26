@@ -11,7 +11,7 @@ import java.util.stream.Stream;
  * This class consists exclusively of static methods to support debugging and
  * monitoring of threads.
  */
-public class ThreadContainers {
+class ThreadContainers {
 	private static final JavaLangAccess JLA = SharedSecrets.getJavaLangAccess();
 
 	// the set of thread containers registered with this class
